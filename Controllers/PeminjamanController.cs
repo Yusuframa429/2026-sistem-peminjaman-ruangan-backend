@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using _2026_sistem_peminjaman_ruangan_backend.Data;
 using _2026_sistem_peminjaman_ruangan_backend.Models;
 using _2026_sistem_peminjaman_ruangan_backend.DTOs;
+using _2026_sistem_peminjaman_ruangan_backend.Interfaces;
 
 namespace _2026_sistem_peminjaman_ruangan_backend.Controllers
 {
@@ -10,88 +9,33 @@ namespace _2026_sistem_peminjaman_ruangan_backend.Controllers
     [ApiController]
     public class PeminjamanController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IPeminjamanService _peminjamanService;
 
-        public PeminjamanController(AppDbContext context)
+        // Controller cuma panggil Service, gak nyentuh DbContext lagi!
+        public PeminjamanController(IPeminjamanService peminjamanService)
         {
-            _context = context;
+            _peminjamanService = peminjamanService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Peminjaman>>> GetPeminjaman(string? q, string? status)
-        {
-            var query = _context.Peminjaman.AsQueryable();
-            if (!string.IsNullOrEmpty(q))
-            {
-                query = query.Where(x => x.NamaPeminjam.Contains(q) || x.Ruangan.Contains(q));
-            }
-            if (!string.IsNullOrEmpty(status))
-            {
-                query = query.Where(x => x.Status == status);
-            }
-            return await query.ToListAsync();
-        }
-
-        // GET: api/Peminjaman
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Peminjaman>>> GetPeminjaman(string? search, string? status, string? sort)
         {
-            var query = _context.Peminjaman.AsQueryable();
-
-            if (!string.IsNullOrEmpty(search))
-            {
-                query = query.Where(p => p.NamaPeminjam.ToLower().Contains(search.ToLower()) || p.Keperluan.ToLower().Contains(search.ToLower()));
-            }
-
-            if (!string.IsNullOrEmpty(status))
-            {
-                query = query.Where(p => p.Status == status);
-            }
-
-            switch (sort)
-            {
-                case "terlama":
-                    query = query.OrderBy(p => p.TanggalPeminjaman);
-                    break;
-                case "nama_az":
-                    query = query.OrderBy(p => p.NamaPeminjam);
-                    break;
-                case "nama_za":
-                    query = query.OrderByDescending(p => p.NamaPeminjam);
-                    break;
-                default:
-                    query = query.OrderByDescending(p => p.TanggalPeminjaman);
-                    break;
-            }
-
-            return await query.ToListAsync();
+            var data = await _peminjamanService.GetPeminjamanAsync(search, status, sort);
+            return Ok(data);
         }
+
         [HttpPost]
         public async Task<ActionResult<Peminjaman>> PostPeminjaman(CreatePeminjamanDto request)
         {
-            var peminjaman = new Peminjaman
-            {
-                NamaPeminjam = request.NamaPeminjam!,
-                Ruangan = request.Ruangan!,
-                TanggalPeminjaman = request.TanggalPeminjaman.Value,
-                Keperluan = request.Keperluan!,
-                Status = "Menunggu"
-            };
-
-            _context.Peminjaman.Add(peminjaman);
-            await _context.SaveChangesAsync();
-
+            var peminjaman = await _peminjamanService.CreatePeminjamanAsync(request);
             return CreatedAtAction(nameof(GetPeminjaman), new { id = peminjaman.Id }, peminjaman);
         }
 
         [HttpPut("{id}/status")]
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] string statusBaru)
         {
-            var peminjaman = await _context.Peminjaman.FindAsync(id);
-            if (peminjaman == null) return NotFound();
-
-            peminjaman.Status = statusBaru;
-            await _context.SaveChangesAsync();
+            var success = await _peminjamanService.UpdateStatusAsync(id, statusBaru);
+            if (!success) return NotFound();
 
             return NoContent();
         }
@@ -99,11 +43,8 @@ namespace _2026_sistem_peminjaman_ruangan_backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePeminjaman(int id)
         {
-            var peminjaman = await _context.Peminjaman.FindAsync(id);
-            if (peminjaman == null) return NotFound();
-
-            _context.Peminjaman.Remove(peminjaman);
-            await _context.SaveChangesAsync();
+            var success = await _peminjamanService.DeletePeminjamanAsync(id);
+            if (!success) return NotFound();
 
             return NoContent();
         }
