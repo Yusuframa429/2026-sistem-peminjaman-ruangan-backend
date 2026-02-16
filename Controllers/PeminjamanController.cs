@@ -16,7 +16,7 @@ namespace _2026_sistem_peminjaman_ruangan_backend.Controllers
         {
             _context = context;
         }
-        
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Peminjaman>>> GetPeminjaman(string? q, string? status)
         {
@@ -31,15 +31,41 @@ namespace _2026_sistem_peminjaman_ruangan_backend.Controllers
             }
             return await query.ToListAsync();
         }
-        
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Peminjaman>> GetPeminjaman(int id)
+
+        // GET: api/Peminjaman
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Peminjaman>>> GetPeminjaman(string? search, string? status, string? sort)
         {
-            var peminjaman = await _context.Peminjaman.FindAsync(id);
-            if (peminjaman == null) return NotFound();
-            return peminjaman;
+            var query = _context.Peminjaman.AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(p => p.NamaPeminjam.ToLower().Contains(search.ToLower()) || p.Keperluan.ToLower().Contains(search.ToLower()));
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(p => p.Status == status);
+            }
+
+            switch (sort)
+            {
+                case "terlama":
+                    query = query.OrderBy(p => p.TanggalPeminjaman);
+                    break;
+                case "nama_az":
+                    query = query.OrderBy(p => p.NamaPeminjam);
+                    break;
+                case "nama_za":
+                    query = query.OrderByDescending(p => p.NamaPeminjam);
+                    break;
+                default:
+                    query = query.OrderByDescending(p => p.TanggalPeminjaman);
+                    break;
+            }
+
+            return await query.ToListAsync();
         }
-        
         [HttpPost]
         public async Task<ActionResult<Peminjaman>> PostPeminjaman(CreatePeminjamanDto request)
         {
@@ -57,7 +83,7 @@ namespace _2026_sistem_peminjaman_ruangan_backend.Controllers
 
             return CreatedAtAction(nameof(GetPeminjaman), new { id = peminjaman.Id }, peminjaman);
         }
-        
+
         [HttpPut("{id}/status")]
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] string statusBaru)
         {
@@ -69,7 +95,7 @@ namespace _2026_sistem_peminjaman_ruangan_backend.Controllers
 
             return NoContent();
         }
-        
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePeminjaman(int id)
         {
