@@ -11,14 +11,13 @@ namespace _2026_sistem_peminjaman_ruangan_backend.Models
         public string NamaPeminjam { get; set; } = string.Empty;
 
         [Required]
-        public string Ruangan { get; set; } = string.Empty; // Contoh: "Aula Utama"
+        public string Ruangan { get; set; } = string.Empty;
 
         public DateTime TanggalPeminjaman { get; set; }
 
         [Required]
         public string Keperluan { get; set; } = string.Empty;
-
-        // Status: "Menunggu", "Disetujui", "Ditolak"
+        
         public string Status { get; set; } = "Menunggu";
     }
 }

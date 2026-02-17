@@ -22,7 +22,7 @@ namespace _2026_sistem_peminjaman_ruangan_backend.Services
             if (!string.IsNullOrEmpty(search))
             {
                 var lowerSearch = search.ToLower();
-                query = query.Where(p => p.NamaPeminjam.ToLower().Contains(lowerSearch) || 
+                query = query.Where(p => p.NamaPeminjam.ToLower().Contains(lowerSearch) ||
                                          p.Keperluan.ToLower().Contains(lowerSearch) ||
                                          p.Ruangan.ToLower().Contains(lowerSearch));
             }

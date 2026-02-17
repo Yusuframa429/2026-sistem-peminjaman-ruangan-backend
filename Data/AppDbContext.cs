@@ -19,7 +19,6 @@ namespace _2026_sistem_peminjaman_ruangan_backend.Data
                     Id = 1,
                     NamaPeminjam = "Budi Santoso",
                     Ruangan = "Lab Komputer 1",
-                    // GANTI INI: Pakai tanggal tetap
                     TanggalPeminjaman = new DateTime(2026, 2, 20, 10, 0, 0), 
                     Keperluan = "Praktikum Tambahan",
                     Status = "Menunggu"
