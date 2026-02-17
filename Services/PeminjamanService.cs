@@ -19,35 +19,25 @@ namespace _2026_sistem_peminjaman_ruangan_backend.Services
         {
             var query = _context.Peminjaman.AsQueryable();
 
-            // Logika Pencarian
             if (!string.IsNullOrEmpty(search))
             {
-                query = query.Where(p => p.NamaPeminjam.ToLower().Contains(search.ToLower()) || 
-                                         p.Keperluan.ToLower().Contains(search.ToLower()) ||
-                                         p.Ruangan.ToLower().Contains(search.ToLower()));
+                var lowerSearch = search.ToLower();
+                query = query.Where(p => p.NamaPeminjam.ToLower().Contains(lowerSearch) || 
+                                         p.Keperluan.ToLower().Contains(lowerSearch) ||
+                                         p.Ruangan.ToLower().Contains(lowerSearch));
             }
 
-            // Logika Filter Status
             if (!string.IsNullOrEmpty(status))
             {
-                query = query.Where(p => p.Status == status);
+                query = query.Where(p => p.Status.ToLower() == status.ToLower());
             }
 
-            // Logika Sorting
             switch (sort)
             {
-                case "terlama":
-                    query = query.OrderBy(p => p.TanggalPeminjaman);
-                    break;
-                case "nama_az":
-                    query = query.OrderBy(p => p.NamaPeminjam);
-                    break;
-                case "nama_za":
-                    query = query.OrderByDescending(p => p.NamaPeminjam);
-                    break;
-                default:
-                    query = query.OrderByDescending(p => p.TanggalPeminjaman);
-                    break;
+                case "terlama": query = query.OrderBy(p => p.TanggalPeminjaman); break;
+                case "nama_az": query = query.OrderBy(p => p.NamaPeminjam); break;
+                case "nama_za": query = query.OrderByDescending(p => p.NamaPeminjam); break;
+                default: query = query.OrderByDescending(p => p.TanggalPeminjaman); break;
             }
 
             return await query.ToListAsync();
@@ -57,10 +47,10 @@ namespace _2026_sistem_peminjaman_ruangan_backend.Services
         {
             var peminjaman = new Peminjaman
             {
-                NamaPeminjam = request.NamaPeminjam!,
-                Ruangan = request.Ruangan!,
-                TanggalPeminjaman = request.TanggalPeminjaman.Value,
-                Keperluan = request.Keperluan!,
+                NamaPeminjam = request.NamaPeminjam,
+                Ruangan = request.Ruangan,
+                TanggalPeminjaman = request.TanggalPeminjaman ?? DateTime.Now,
+                Keperluan = request.Keperluan,
                 Status = "Menunggu"
             };
 
@@ -69,22 +59,20 @@ namespace _2026_sistem_peminjaman_ruangan_backend.Services
             return peminjaman;
         }
 
-        public async Task<bool> UpdateStatusAsync(int id, string statusBaru)
+        public async Task<bool> UpdateStatusAsync(int id, string status)
         {
-            var peminjaman = await _context.Peminjaman.FindAsync(id);
-            if (peminjaman == null) return false;
-
-            peminjaman.Status = statusBaru;
+            var data = await _context.Peminjaman.FindAsync(id);
+            if (data == null) return false;
+            data.Status = status;
             await _context.SaveChangesAsync();
             return true;
         }
 
         public async Task<bool> DeletePeminjamanAsync(int id)
         {
-            var peminjaman = await _context.Peminjaman.FindAsync(id);
-            if (peminjaman == null) return false;
-
-            _context.Peminjaman.Remove(peminjaman);
+            var data = await _context.Peminjaman.FindAsync(id);
+            if (data == null) return false;
+            _context.Peminjaman.Remove(data);
             await _context.SaveChangesAsync();
             return true;
         }

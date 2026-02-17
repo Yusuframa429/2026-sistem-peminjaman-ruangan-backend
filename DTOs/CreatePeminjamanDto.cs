@@ -9,8 +9,7 @@ namespace _2026_sistem_peminjaman_ruangan_backend.DTOs
 
         [Required(ErrorMessage = "Ruangan wajib diisi!")]
         public string? Ruangan { get; set; }
-
-        // Tambahkan tanda tanya (?) agar kalau kosong dianggap error
+        
         [Required(ErrorMessage = "Tanggal harus diisi!")]
         public DateTime? TanggalPeminjaman { get; set; }
 

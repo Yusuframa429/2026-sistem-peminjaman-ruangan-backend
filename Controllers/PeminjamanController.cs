@@ -10,8 +10,6 @@ namespace _2026_sistem_peminjaman_ruangan_backend.Controllers
     public class PeminjamanController : ControllerBase
     {
         private readonly IPeminjamanService _peminjamanService;
-
-        // Controller cuma panggil Service, gak nyentuh DbContext lagi!
         public PeminjamanController(IPeminjamanService peminjamanService)
         {
             _peminjamanService = peminjamanService;
